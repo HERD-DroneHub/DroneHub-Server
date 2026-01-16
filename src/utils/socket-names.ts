@@ -20,3 +20,4 @@ export const DRONE_VIDEO_DATA = "drone-video-data";
 export const ADD_DRONE_TO_VIDEOSCREEN = "add-drone-to-videoscreen";
 export const REMOVE_DRONE_TO_VIDEOSCREEN = "remove-drone-to-videoscreen";
 export const DRONE_CONTROLLER_COLOR = "drone-controller-color";
+export const WEBRTC = "webrtc_msg";

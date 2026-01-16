@@ -75,7 +75,7 @@ export interface DroneWayPointMissionCommand {
 }
 
 export interface DroneVideoCommand {
-  id: string;
+  targetDroneId: string;
   targetDroneName: string;
   droneColor?: string;
   socketId?: string;

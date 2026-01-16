@@ -13,7 +13,7 @@ import {
   DroneWayPointMissionCommand
 } from "./models/drone.js";
 import { Error } from "./models/error.js";
-import { DRONE, DRONE_DISCONNECT, DRONE_VIDEO_DATA, DRONE_GOTO_LOCATION, DRONE_REQUEST_GOTO_LOCATION, DRONE_REQUEST_RTH, DRONE_REQUEST_STOP, DRONE_REQUEST_WAYPOINT_MISSION, DRONE_RTH, DRONE_STOP, DRONE_WAYPOINT_MISSION, ERROR, EVENT, ADD_DRONE_TO_VIDEOSCREEN, REMOVE_DRONE_TO_VIDEOSCREEN, DRONE_CONTROLLER_COLOR } from "./utils/socket-names.js";
+import { DRONE, DRONE_DISCONNECT, DRONE_VIDEO_DATA, DRONE_GOTO_LOCATION, DRONE_REQUEST_GOTO_LOCATION, DRONE_REQUEST_RTH, DRONE_REQUEST_STOP, DRONE_REQUEST_WAYPOINT_MISSION, DRONE_RTH, DRONE_STOP, DRONE_WAYPOINT_MISSION, ERROR, EVENT, ADD_DRONE_TO_VIDEOSCREEN, REMOVE_DRONE_TO_VIDEOSCREEN, DRONE_CONTROLLER_COLOR, WEBRTC } from "./utils/socket-names.js";
 import { acquireColor, getColor, releaseColor } from "./models/color.js";
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -67,9 +67,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("webrtc_msg", (receiver: string, msg: object) => {
+  socket.on(WEBRTC, (receiver: string, msg: object) => {
     let from_id = socket.id;
-    socket.to(receiver).emit('webrtc_msg', from_id, msg);
+    socket.to(receiver).emit(WEBRTC, from_id, msg);
     console.log("webrtc_msg: " + msg + " from " + from_id + " to " + receiver);
   });
 
@@ -88,13 +88,14 @@ io.on("connection", (socket) => {
   // EVENT SOCKET
   socket.on(EVENT, (event: string) => {
     socket.broadcast.emit(EVENT, JSON.stringify(event));
+    console.log("Event received: " + event);
   });
 
   // DRONE SOCKETS
   // Drone information
   socket.on(DRONE, (drone: string) => {
     let droneInformation = JSON.parse(drone) as DroneInformation;
-    // Find the correspondion connection and mark it as a drone
+    // Find the corresponding connection and mark it as a drone
     let connection = clients.find((e) => e.id === socket.id);
 
     if (connection && connection.connectionType != ConnectionType.DRONE) {
@@ -196,11 +197,11 @@ const drones: DroneInformation[] = [];
     const command = JSON.parse(args[0]) as DroneVideoCommand;
 
     const targetClient = clients.find(
-      (e) => e.drone?.id === command.id
+      (e) => e.drone?.id === command.targetDroneId
     );
     command.socketId = targetClient?.id;
 
-    console.log("Adding drone to videoscreen: " + command.id);
+    console.log("Adding drone to videoscreen: " + command.socketId);
     socket.broadcast.emit(ADD_DRONE_TO_VIDEOSCREEN, JSON.stringify(command));
     socket.broadcast.emit(DRONE, JSON.stringify(targetClient?.drone));
   });
@@ -210,11 +211,11 @@ const drones: DroneInformation[] = [];
     const command = JSON.parse(args[0]) as DroneVideoCommand;
 
     const targetClient = clients.find(
-      (e) => e.drone?.id === command.id
+      (e) => e.drone?.id === command.targetDroneId
     );
     command.socketId = targetClient?.id;
 
-    console.log("Removing drone to videoscreen: " + command.id);
+    console.log("Removing drone to videoscreen: " + command.socketId);
     socket.broadcast.emit(REMOVE_DRONE_TO_VIDEOSCREEN, JSON.stringify(command));
     socket.broadcast.emit(DRONE, JSON.stringify(targetClient?.drone));
   });
