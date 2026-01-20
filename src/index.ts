@@ -2,7 +2,6 @@ import express from "express";
 import { createServer } from "http";
 import { StatusCodes } from "http-status-codes";
 import { Server } from "socket.io";
-
 import { Client, ConnectionType } from "./models/connection.js";
 import {
   DroneGoToLocationCommand,
@@ -86,9 +85,21 @@ io.on("connection", (socket) => {
   });
 
   // EVENT SOCKET
-  socket.on(EVENT, (event: string) => {
-    socket.broadcast.emit(EVENT, JSON.stringify(event));
-    console.log("Event received: " + event);
+  socket.on(EVENT, (event: any) => {
+    try {      
+      // Convert imageArray to Buffer if it exists
+      if (event.imageArray) {
+        const imageBuffer = Buffer.from(event.imageArray, 'base64');
+        // Replace imageArray with the buffer for broadcasting
+        event.imageBuffer = imageBuffer;
+        delete event.imageArray; // Remove the base64 string to save bandwidth
+      }
+      
+      console.log("Event received and processed");
+      socket.broadcast.emit(EVENT, JSON.stringify(event));
+    } catch (err) {
+      console.error("Failed to process event:", err);
+    }
   });
 
   // DRONE SOCKETS

@@ -1,11 +1,13 @@
 import { Point } from './point';
 
 export interface DroneEvent {
-  eventID: string;
-  droneID: string | null;
-  position: Point | null;
-  content: string;
-  type: string;
+  eventID: string,
+  droneID: string,
+  position: Point,
+  content: string,
+  type: string,
+  imageArray: any
+  image?: Buffer,
 }
 
 export enum EventPriority {
